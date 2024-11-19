@@ -33,7 +33,8 @@ export default function SettingsPage() {
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (currentUser?.role !== 'manager') {
+    // Cek apakah currentUser ada dan memiliki role 'manager'
+    if (!currentUser || currentUser.role !== 'manager') {
       setError('Hanya manager yang dapat menambahkan user baru');
       return;
     }
@@ -58,13 +59,18 @@ export default function SettingsPage() {
     e.preventDefault();
     setError('');
 
+    if (!currentUser) {
+      setError('Pengguna tidak ditemukan');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       setError('Password baru tidak cocok');
       return;
     }
 
     const updatedUsers = users.map((user) => {
-      if (user.id === currentUser?.id) {
+      if (user.id === currentUser.id) {
         if (user.password !== hashPassword(currentPassword)) {
           setError('Password saat ini salah');
           return user;
@@ -116,19 +122,19 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               <p className="text-sm text-gray-600">Nama</p>
-              <p className="font-medium text-gray-800">{currentUser?.name}</p>
+              <p className="font-medium text-gray-800">{currentUser?.name || 'Tidak tersedia'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Username</p>
-              <p className="font-medium text-gray-800">{currentUser?.username}</p>
+              <p className="font-medium text-gray-800">{currentUser?.username || 'Tidak tersedia'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Role</p>
-              <p className="font-medium text-gray-800 capitalize">{currentUser?.role}</p>
+              <p className="font-medium text-gray-800 capitalize">{currentUser?.role || 'Tidak tersedia'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Shift</p>
-              <p className="font-medium text-gray-800">Shift {currentUser?.shift}</p>
+              <p className="font-medium text-gray-800">Shift {currentUser?.shift || 'Tidak tersedia'}</p>
             </div>
           </div>
         </div>
@@ -167,10 +173,9 @@ export default function SettingsPage() {
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Tambah User Baru</h2>
             <form onSubmit={handleAddUser} className="space-y-4">
+              {/* Form fields for adding user */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                 <input
                   type="text"
                   value={username}
@@ -179,11 +184,8 @@ export default function SettingsPage() {
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <input
                   type="password"
                   value={password}
@@ -192,11 +194,8 @@ export default function SettingsPage() {
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nama Lengkap
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
                 <input
                   type="text"
                   value={name}
@@ -205,57 +204,42 @@ export default function SettingsPage() {
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
                 >
                   <option value="karyawan">Karyawan</option>
-                  <option value="supervisor">Supervisor</option>
+                  <option value="manager">Manager</option>
                 </select>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Shift
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Shift</label>
                 <select
                   value={shift}
                   onChange={(e) => setShift(Number(e.target.value) as 1 | 2 | 3)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
                 >
-                  <option value={1}>Shift 1 (07:00 - 15:00)</option>
-                  <option value={2}>Shift 2 (15:00 - 23:00)</option>
-                  <option value={3}>Shift 3 (23:00 - 07:00)</option>
+                  <option value={1}>Shift 1</option>
+                  <option value={2}>Shift 2</option>
+                  <option value={3}>Shift 3</option>
                 </select>
               </div>
 
-              {error && (
-                <p className="text-red-500 text-sm">{error}</p>
-              )}
+              {/* Error Message */}
+              {error && <p className="text-red-600 text-sm">{error}</p>}
 
-              <div className="flex space-x-4">
+              <div className="flex justify-between mt-6">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowAddUser(false);
-                    resetForm();
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  onClick={() => setShowAddUser(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
                 >
                   Batal
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">
                   Tambah User
                 </button>
               </div>
@@ -271,9 +255,7 @@ export default function SettingsPage() {
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Ganti Password</h2>
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password Saat Ini
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password Saat Ini</label>
                 <input
                   type="password"
                   value={currentPassword}
@@ -282,11 +264,8 @@ export default function SettingsPage() {
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password Baru
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
                 <input
                   type="password"
                   value={newPassword}
@@ -295,11 +274,8 @@ export default function SettingsPage() {
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Konfirmasi Password Baru
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
                 <input
                   type="password"
                   value={confirmPassword}
@@ -309,30 +285,23 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {error && (
-                <p className="text-red-500 text-sm">{error}</p>
-              )}
+              {/* Error Message */}
+              {error && <p className="text-red-600 text-sm">{error}</p>}
 
-              <div className="flex space-x-4">
+              <div className="flex justify-between mt-6">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowChangePassword(false);
-                    resetPasswordForm();
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  onClick={() => setShowChangePassword(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
                 >
                   Batal
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Simpan Password
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+                  Ganti Password
                 </button>
               </div>
             </form>
-          </div> </div>
+          </div>
         </div>
       )}
     </div>
